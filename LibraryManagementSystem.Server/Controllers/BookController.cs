@@ -25,7 +25,8 @@ namespace LibraryManagementSystem.Server.Controllers
         {
             return await _context.Books
                 .Include(b => b.Category)
-                .Select(b => new BookDto {
+                .Select(b => new BookDto
+                {
                     // ...map properties
                 })
                 .ToListAsync();
