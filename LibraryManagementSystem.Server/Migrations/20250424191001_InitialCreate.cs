@@ -25,6 +25,16 @@ namespace LibraryManagementSystem.Server.Migrations
                     table.PrimaryKey("PK_AspNetRoles", x => x.Id);
                 });
 
+            // Seed roles
+            migrationBuilder.InsertData(
+                table: "AspNetRoles",
+                columns: new[] { "Id", "Name", "NormalizedName", "ConcurrencyStamp" },
+                values: new object[,]
+                {
+                    { "1", "Admin", "ADMIN", "1" },
+                    { "2", "User", "USER", "2" }
+                });
+
             migrationBuilder.CreateTable(
                 name: "AspNetUsers",
                 columns: table => new

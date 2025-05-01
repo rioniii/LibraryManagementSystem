@@ -1,5 +1,6 @@
 using LibraryManagementSystem.Server.Data;
 using LibraryManagementSystem.Server.Models;
+using LibraryManagementSystem.Server.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 
@@ -16,6 +17,9 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>() // Use ApplicationUser
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders(); // Add this if you need token generation (e.g., password reset)
+
+// Add RoleService
+builder.Services.AddScoped<RoleService>();
 
 // 3. Add Controllers (existing)
 builder.Services.AddControllers();

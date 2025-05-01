@@ -2,6 +2,7 @@ using LibraryManagementSystem.Server.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using LibraryManagementSystem.Server.DTOs;
+using Microsoft.AspNetCore.Identity;
 
 namespace LibraryManagementSystem.Server.Data
 {
@@ -47,8 +48,6 @@ namespace LibraryManagementSystem.Server.Data
                 .HasForeignKey(bl => bl.UserId); // Changed from MemberId
 
             // Add any additional configurations, constraints, or seed data here
-
-            
         }
     }
 } 
