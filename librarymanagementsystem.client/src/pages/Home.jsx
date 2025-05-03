@@ -43,7 +43,7 @@ const Home = () => (
                             Nothing is more important than an unread library.
                         </Typography>
                         <Typography variant="subtitle2" sx={{ mt: 1 }}>
-                            — John Waters
+                            ï¿½ John Waters
                         </Typography>
                     </Box>
                 </Card>

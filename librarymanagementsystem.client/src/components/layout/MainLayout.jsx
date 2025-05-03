@@ -23,6 +23,7 @@ const MainLayout = () => (
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button color="inherit" component={RouterLink} to="/">Home</Button>
+                    <Button color="inherit" component={RouterLink} to="/books">Books</Button>
                     <Button color="inherit" component={RouterLink} to="/about">About</Button>
                     <Button color="inherit" component={RouterLink} to="/contact">Contact</Button>
                 </Box>
