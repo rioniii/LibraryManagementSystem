@@ -1,151 +1,119 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  Button,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
+  Box, Typography, Card, CardMedia, FormControl, InputLabel, Select, MenuItem, TextField
 } from '@mui/material';
-import { Edit as EditIcon, Delete as DeleteIcon, Add as AddIcon } from '@mui/icons-material';
 
 const BookList = () => {
-  const [books, setBooks] = useState([
-    { id: 1, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', isbn: '9780743273565', available: true },
-    { id: 2, title: 'To Kill a Mockingbird', author: 'Harper Lee', isbn: '9780446310789', available: false },
-  ]);
+  const [search, setSearch] = useState('');
+  const [entries, setEntries] = useState(10);
+  const [books, setBooks] = useState([]);
 
-  const [open, setOpen] = useState(false);
-  const [selectedBook, setSelectedBook] = useState(null);
-  const [formData, setFormData] = useState({});
+  useEffect(() => {
+    axios.get('/api/Book')
+      .then(response => setBooks(response.data))
+      .catch(error => {
+        setBooks([]);
+        console.error('Error fetching books:', error);
+      });
+  }, []);
 
-  const handleOpen = (book) => {
-    if (book) {
-      setSelectedBook(book);
-      setFormData(book);
-    } else {
-      setSelectedBook(null);
-      setFormData({});
-    }
-    setOpen(true);
-  };
-
-  const handleClose = () => {
-    setOpen(false);
-    setSelectedBook(null);
-    setFormData({});
-  };
-
-  const handleSubmit = () => {
-    if (selectedBook) {
-      // Update existing book
-      setBooks(books.map(book => 
-        book.id === selectedBook.id ? { ...book, ...formData } : book
-      ));
-    } else {
-      // Add new book
-      const newBook = {
-        id: Math.max(...books.map(b => b.id)) + 1,
-        title: formData.title || '',
-        author: formData.author || '',
-        isbn: formData.isbn || '',
-        available: true,
-      };
-      setBooks([...books, newBook]);
-    }
-    handleClose();
-  };
-
-  const handleDelete = (id) => {
-    setBooks(books.filter(book => book.id !== id));
-  };
+  const filteredBooks = books.filter(book =>
+    (book.title || '').toLowerCase().includes(search.toLowerCase()) ||
+    (book.author || '').toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
-    <div>
-      <Button
-        variant="contained"
-        color="primary"
-        startIcon={<AddIcon />}
-        onClick={() => handleOpen()}
-        sx={{ mb: 2 }}
-      >
-        Add Book
-      </Button>
-
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Title</TableCell>
-              <TableCell>Author</TableCell>
-              <TableCell>ISBN</TableCell>
-              <TableCell>Status</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {books.map((book) => (
-              <TableRow key={book.id}>
-                <TableCell>{book.title}</TableCell>
-                <TableCell>{book.author}</TableCell>
-                <TableCell>{book.isbn}</TableCell>
-                <TableCell>{book.available ? 'Available' : 'Borrowed'}</TableCell>
-                <TableCell>
-                  <IconButton onClick={() => handleOpen(book)}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDelete(book.id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
-
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>{selectedBook ? 'Edit Book' : 'Add New Book'}</DialogTitle>
-        <DialogContent>
+    <Box
+      sx={{
+        p: 3,
+        width: '100vw',
+        minHeight: '100vh',
+        bgcolor: '#f5f5f5',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-start',
+      }}
+    >
+      <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
+        <Typography variant="h4" align="center" gutterBottom>
+          Book Inventory List
+        </Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+          <FormControl size="small" sx={{ minWidth: 100 }}>
+            <InputLabel>Show</InputLabel>
+            <Select
+              value={entries}
+              label="Show"
+              onChange={e => setEntries(e.target.value)}
+            >
+              {[10, 25, 50, 100].map(num => (
+                <MenuItem key={num} value={num}>{num} entries</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
           <TextField
-            autoFocus
-            margin="dense"
-            label="Title"
-            fullWidth
-            value={formData.title || ''}
-            onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+            size="small"
+            label="Search"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
           />
-          <TextField
-            margin="dense"
-            label="Author"
-            fullWidth
-            value={formData.author || ''}
-            onChange={(e) => setFormData({ ...formData, author: e.target.value })}
-          />
-          <TextField
-            margin="dense"
-            label="ISBN"
-            fullWidth
-            value={formData.isbn || ''}
-            onChange={(e) => setFormData({ ...formData, isbn: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleSubmit} variant="contained" color="primary">
-            {selectedBook ? 'Update' : 'Add'}
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </div>
+        </Box>
+        <Box>
+          {filteredBooks.slice(0, entries).map(book => (
+            <Card key={book.bookId} sx={{ display: 'flex', mb: 2, p: 2, alignItems: 'center' }}>
+              {/* ID Column */}
+              <Box
+                sx={{
+                  minWidth: 60,
+                  maxWidth: 60,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  bgcolor: '#f0f0f0',
+                  borderRadius: 1,
+                  height: '100%',
+                  mr: 2,
+                  p: 1,
+                }}
+              >
+                <Typography variant="subtitle2" color="textSecondary">
+                  ID
+                </Typography>
+                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                  {book.bookId}
+                </Typography>
+              </Box>
+              {/* Book Details */}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{book.title}</Typography>
+                <Typography variant="body2" sx={{ mb: 1 }}>
+                          Author: <b>{book.author}</b> | Genre: <b>{book.categoryName}</b>
+                </Typography>
+                <Typography variant="body2">
+                  Language: <b>English</b> | Publisher: <b>{book.publisher}</b> |
+                </Typography>
+                <Typography variant="body2">
+                         | Actual Stock: <b>{book.totalCopies}</b> | Available: <b>{book.status}</b>
+                </Typography>
+                <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1 }}>
+                  Description: {book.description}
+                </Typography>
+              </Box>
+              {/* Book Cover */}
+              <CardMedia
+                component="img"
+                sx={{ width: 120, objectFit: 'contain', ml: 2 }}
+                image={book.coverImageURL}
+                alt={book.title}
+              />
+            </Card>
+          ))}
+        </Box>
+      </Box>
+    </Box>
   );
 };
 

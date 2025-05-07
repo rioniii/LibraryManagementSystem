@@ -5,11 +5,20 @@ namespace LibraryManagementSystem.Server.DTOs
 {
     public class BookLoanDto
     {
-        public int BookLoanId { get; set; }
+        [Required]
         public int BookId { get; set; }
-        public string UserName { get; set; } = string.Empty;
-        public DateTime? LoanDate { get; set; }
-        public DateTime ReturnDate { get; set; }
-        public string BookTitle { get; set; } = string.Empty;
+
+        [Required]
+        public string UserId { get; set; } 
+
+        [Required]
+        public DateTime LoanDate { get; set; }
+
+        [Required]
+        public DateTime DueDate { get; set; }
+
+        public DateTime? ReturnDate { get; set; }
+        public string Status { get; set; } = string.Empty;
+        public decimal? FineAmount { get; set; }
     }
 }

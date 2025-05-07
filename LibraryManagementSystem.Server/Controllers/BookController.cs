@@ -27,7 +27,19 @@ namespace LibraryManagementSystem.Server.Controllers
                 .Include(b => b.Category)
                 .Select(b => new BookDto
                 {
-                    // ...map properties
+                    BookId = b.BookId,
+                    ISBN = b.ISBN,
+                    Title = b.Title,
+                    Author = b.Author,
+                    PublicationYear = b.PublicationYear,
+                    Publisher = b.Publisher,
+                    TotalCopies = b.TotalCopies,
+                    Description = b.Description,
+                    CoverImageURL = b.CoverImageURL,
+                    Location = b.Location,
+                    AddedDate = b.AddedDate,
+                    Status = b.Status,
+                    CategoryName = b.Category.Name
                 })
                 .ToListAsync();
         }
@@ -117,9 +129,9 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // PUT: api/books/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutBook(int id, Book book)
+        public async Task<IActionResult> PutBook(int id, BookDto bookDto)
         {
-            if (id != book.BookId)
+            if (id != bookDto.BookId)
             {
                 return BadRequest("Book ID mismatch");
             }
@@ -130,8 +142,18 @@ namespace LibraryManagementSystem.Server.Controllers
                 return NotFound();
             }
 
-            _context.Entry(existingBook).State = EntityState.Detached;
-            _context.Entry(book).State = EntityState.Modified;
+            // Update only the properties that should be updated
+            existingBook.ISBN = bookDto.ISBN;
+            existingBook.Title = bookDto.Title;
+            existingBook.Author = bookDto.Author;
+            existingBook.PublicationYear = bookDto.PublicationYear;
+            existingBook.Publisher = bookDto.Publisher;
+            existingBook.TotalCopies = bookDto.TotalCopies;
+            existingBook.Description = bookDto.Description;
+            existingBook.CoverImageURL = bookDto.CoverImageURL;
+            existingBook.Location = bookDto.Location;
+            existingBook.AddedDate = bookDto.AddedDate;
+            existingBook.Status = bookDto.Status;
 
             try
             {
