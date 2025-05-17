@@ -19,7 +19,7 @@ import {
   Email,
   AccessTime
 } from '@mui/icons-material';
-import Navbar from '../components/layout/Navbar';
+import Navbar from '../components/Navbar';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({

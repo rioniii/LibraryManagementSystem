@@ -5,7 +5,7 @@ import SchoolIcon from '@mui/icons-material/School';
 import GroupsIcon from '@mui/icons-material/Groups';
 import AutoStoriesIcon from '@mui/icons-material/AutoStories';
 import EmojiEventsIcon from '@mui/icons-material/EmojiEvents';
-import Navbar from '../components/layout/Navbar';
+import Navbar from '../components/Navbar';
 
 const HeroSection = styled(Box)(({ theme }) => ({
     position: 'relative',

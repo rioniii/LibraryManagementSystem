@@ -1,119 +1,147 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import {
-  Box, Typography, Card, CardMedia, FormControl, InputLabel, Select, MenuItem, TextField
+  Box,
+  Typography,
+  Card,
+  CardContent,
+  CardMedia,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  TextField,
+  Container,
+  CircularProgress,
+  Alert,
+  InputAdornment,
+  Grid
 } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
 
 const BookList = () => {
   const [search, setSearch] = useState('');
   const [entries, setEntries] = useState(10);
   const [books, setBooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
+    setLoading(true);
     axios.get('/api/Book')
-      .then(response => setBooks(response.data))
+      .then(response => {
+        setBooks(response.data);
+        setLoading(false);
+      })
       .catch(error => {
-        setBooks([]);
         console.error('Error fetching books:', error);
+        setError('Failed to load books. Please try again later.');
+        setLoading(false);
       });
   }, []);
 
   const filteredBooks = books.filter(book =>
     (book.title || '').toLowerCase().includes(search.toLowerCase()) ||
-    (book.author || '').toLowerCase().includes(search.toLowerCase())
+    (book.author || '').toLowerCase().includes(search.toLowerCase()) ||
+    (book.categoryName || '').toLowerCase().includes(search.toLowerCase()) ||
+    (book.publisher || '').toLowerCase().includes(search.toLowerCase()) ||
+    (book.description || '').toLowerCase().includes(search.toLowerCase())
   );
 
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 'calc(100vh - 64px)' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ mt: 8, textAlign: 'center' }}>
+        <Alert severity="error" sx={{ maxWidth: 400, mx: 'auto' }}>{error}</Alert>
+      </Box>
+    );
+  }
+
   return (
-    <Box
-      sx={{
-        p: 3,
-        width: '100vw',
-        minHeight: '100vh',
-        bgcolor: '#f5f5f5',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-      }}
-    >
-      <Box sx={{ width: '100%', maxWidth: 800, mx: 'auto' }}>
-        <Typography variant="h4" align="center" gutterBottom>
-          Book Inventory List
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h4" align="center" gutterBottom sx={{ mb: 4 }}>
+        Book Inventory
+      </Typography>
+
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 2, sm: 0 } }}>
+        <FormControl size="small" sx={{ minWidth: 120 }}>
+          <InputLabel>Show</InputLabel>
+          <Select
+            value={entries}
+            label="Show"
+            onChange={e => setEntries(e.target.value)}
+          >
+            {[10, 25, 50, 100].map(num => (
+              <MenuItem key={num} value={num}>{num} entries</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+        <TextField
+          size="small"
+          label="Search"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchIcon />
+              </InputAdornment>
+            ),
+          }}
+          sx={{ width: { xs: '100%', sm: 300 } }}
+        />
+      </Box>
+
+      {filteredBooks.length === 0 && (
+        <Typography variant="h6" align="center" color="textSecondary" sx={{ mt: 4 }}>
+          No books found.
         </Typography>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-          <FormControl size="small" sx={{ minWidth: 100 }}>
-            <InputLabel>Show</InputLabel>
-            <Select
-              value={entries}
-              label="Show"
-              onChange={e => setEntries(e.target.value)}
-            >
-              {[10, 25, 50, 100].map(num => (
-                <MenuItem key={num} value={num}>{num} entries</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            size="small"
-            label="Search"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-          />
-        </Box>
-        <Box>
-          {filteredBooks.slice(0, entries).map(book => (
-            <Card key={book.bookId} sx={{ display: 'flex', mb: 2, p: 2, alignItems: 'center' }}>
-              {/* ID Column */}
-              <Box
-                sx={{
-                  minWidth: 60,
-                  maxWidth: 60,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  bgcolor: '#f0f0f0',
-                  borderRadius: 1,
-                  height: '100%',
-                  mr: 2,
-                  p: 1,
-                }}
-              >
-                <Typography variant="subtitle2" color="textSecondary">
-                  ID
-                </Typography>
-                <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                  {book.bookId}
-                </Typography>
-              </Box>
-              {/* Book Details */}
-              <Box sx={{ flex: 1 }}>
-                <Typography variant="h6" sx={{ fontWeight: 'bold' }}>{book.title}</Typography>
-                <Typography variant="body2" sx={{ mb: 1 }}>
-                          Author: <b>{book.author}</b> | Genre: <b>{book.categoryName}</b>
-                </Typography>
-                <Typography variant="body2">
-                  Language: <b>English</b> | Publisher: <b>{book.publisher}</b> |
-                </Typography>
-                <Typography variant="body2">
-                         | Actual Stock: <b>{book.totalCopies}</b> | Available: <b>{book.status}</b>
-                </Typography>
-                <Typography variant="body2" sx={{ fontStyle: 'italic', mt: 1 }}>
-                  Description: {book.description}
-                </Typography>
-              </Box>
-              {/* Book Cover */}
+      )}
+
+      <Grid container spacing={3}>
+        {filteredBooks.slice(0, entries).map(book => (
+          <Grid item xs={12} sm={6} md={4} key={book.bookId}>
+            <Card sx={{ display: 'flex', flexDirection: 'column', height: '100%', boxShadow: 3, transition: 'transform 0.3s ease' }}>
               <CardMedia
                 component="img"
-                sx={{ width: 120, objectFit: 'contain', ml: 2 }}
-                image={book.coverImageURL}
+                sx={{ height: 200, objectFit: 'contain', pt: 2 }}
+                image={book.coverImageURL || 'https://via.placeholder.com/150?text=No+Image'} // Placeholder image
                 alt={book.title}
               />
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Typography variant="h6" component="div" sx={{ fontWeight: 'bold' }}>
+                  {book.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
+                  by {book.author}
+                </Typography>
+                <Typography variant="body2" sx={{ fontStyle: 'italic' }}>
+                  Genre: {book.categoryName}
+                </Typography>
+                <Typography variant="body2">
+                  Publisher: {book.publisher}
+                </Typography>
+                <Typography variant="body2">
+                  Stock: {book.totalCopies} | Available: {book.status}
+                </Typography>
+                {book.description && (
+                  <Typography variant="body2" sx={{ mt: 1, color: 'text.disabled', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>
+                    {book.description}
+                  </Typography>
+                )}
+              </CardContent>
             </Card>
-          ))}
-        </Box>
-      </Box>
-    </Box>
+          </Grid>
+        ))}
+      </Grid>
+    </Container>
   );
 };
 

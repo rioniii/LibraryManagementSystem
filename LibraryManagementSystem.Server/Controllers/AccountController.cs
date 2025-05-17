@@ -45,8 +45,19 @@ namespace LibraryManagementSystem.Server.Controllers
             var result = await _userManager.CreateAsync(user, model.Password);
             if (result.Succeeded)
             {
-                // Assign the User role by default
-                await _userManager.AddToRoleAsync(user, "User");
+                // Check if this is the first user
+                var isFirstUser = !_userManager.Users.Any();
+
+                if (isFirstUser)
+                {
+                    // Assign the Admin role to the first user
+                    await _userManager.AddToRoleAsync(user, "Admin");
+                }
+                else
+                {
+                    // Assign the User role by default for subsequent users
+                    await _userManager.AddToRoleAsync(user, "User");
+                }
                 
                 // Generate JWT token
                 var token = await GenerateJwtToken(user);
@@ -107,7 +118,6 @@ namespace LibraryManagementSystem.Server.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        //[Authorize(Roles = "Admin")]
         [HttpGet("users")]
         public async Task<IActionResult> GetAllUsers()
         {
@@ -121,6 +131,28 @@ namespace LibraryManagementSystem.Server.Controllers
             }).ToList();
 
             return Ok(users);
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null)
+                return Unauthorized();
+
+            var roles = await _userManager.GetRolesAsync(user);
+            return Ok(new
+            {
+                email = user.Email,
+                firstName = user.FirstName,
+                lastName = user.LastName,
+                roles = roles
+            });
         }
     }
 

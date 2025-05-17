@@ -26,8 +26,7 @@ import MenuBookIcon from '@mui/icons-material/MenuBook'
 import SchoolIcon from '@mui/icons-material/School'
 import AutoStoriesIcon from '@mui/icons-material/AutoStories'
 import { Link } from 'react-router-dom'
-import Navbar from '../components/layout/Navbar'
-import Dashboard from './Dashboard'  
+import Navbar from '../components/Navbar'
 
 const HeroSection = styled(Box)(({ theme }) => ({
   position: 'relative',
@@ -258,14 +257,14 @@ const Home = () => {
       </Box>
 
       {/* Dashboard Section */}
-      <Box sx={{ py: 8, bgcolor: 'background.paper' }}>
+      {/* <Box sx={{ py: 8, bgcolor: 'background.paper' }}>
         <Container maxWidth="lg">
           <Typography variant="h4" align="center" sx={{ mb: 4 }}>
             Admin Dashboard
           </Typography>
           <Dashboard />
         </Container>
-      </Box>
+      </Box> */}
     </Box>
   )
 }

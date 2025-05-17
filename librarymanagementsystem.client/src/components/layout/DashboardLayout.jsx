@@ -1,42 +1,44 @@
 import React, { useState } from 'react';
+import { Outlet, useNavigate } from 'react-router-dom';
 import {
   Box,
   Drawer,
   AppBar,
   Toolbar,
-  Typography,
   List,
+  Typography,
+  Divider,
+  IconButton,
   ListItem,
   ListItemIcon,
   ListItemText,
-  IconButton,
-  useTheme,
-  useMediaQuery,
-  Divider,
   Avatar,
   Menu,
-  MenuItem
+  MenuItem,
+  useTheme,
+  useMediaQuery
 } from '@mui/material';
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  Book as BookIcon,
   People as PeopleIcon,
+  MenuBook as MenuBookIcon,
+  LocalLibrary as LocalLibraryIcon,
   Settings as SettingsIcon,
-  ExitToApp as LogoutIcon,
-  ChevronLeft as ChevronLeftIcon
+  AccountCircle as AccountCircleIcon,
+  Logout as LogoutIcon
 } from '@mui/icons-material';
-import { useNavigate, useLocation } from 'react-router-dom';
+import authService from '../../services/authService';
 
 const drawerWidth = 240;
 
-const DashboardLayout = ({ children }) => {
+const DashboardLayout = () => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState(null);
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const user = authService.getCurrentUser();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -51,33 +53,31 @@ const DashboardLayout = ({ children }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('isAdmin');
-    navigate('/', { replace: true });
+    handleProfileMenuClose();
+    authService.logout();
+    navigate('/login');
+    // window.location.reload(); // No longer needed due to protected route redirect
+  };
+
+  const handleProfileClick = () => {
+    handleProfileMenuClose();
+    navigate('/profile');
   };
 
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
-    { text: 'Books', icon: <BookIcon />, path: '/dashboard/books' },
     { text: 'Users', icon: <PeopleIcon />, path: '/dashboard/users' },
-    { text: 'Settings', icon: <SettingsIcon />, path: '/dashboard/settings' },
+    { text: 'Books', icon: <MenuBookIcon />, path: '/dashboard/books' },
+    { text: 'Book Loans', icon: <LocalLibraryIcon />, path: '/dashboard/loans' },
+    { text: 'Settings', icon: <SettingsIcon />, path: '/dashboard/settings' }
   ];
 
   const drawer = (
-    <Box>
-      <Toolbar sx={{ 
-        display: 'flex', 
-        alignItems: 'center', 
-        justifyContent: 'space-between',
-        px: [1],
-      }}>
-        <Typography variant="h6" noWrap component="div" sx={{ color: 'primary.main', fontWeight: 600 }}>
+    <div>
+      <Toolbar sx={{ justifyContent: 'center' }}>
+        <Typography variant="h6" noWrap component="div">
           Admin Panel
         </Typography>
-        {!isMobile && (
-          <IconButton onClick={handleDrawerToggle}>
-            <ChevronLeftIcon />
-          </IconButton>
-        )}
       </Toolbar>
       <Divider />
       <List>
@@ -85,29 +85,19 @@ const DashboardLayout = ({ children }) => {
           <ListItem
             button
             key={item.text}
-            onClick={() => navigate(item.path)}
-            selected={location.pathname === item.path}
-            sx={{
-              '&.Mui-selected': {
-                backgroundColor: 'primary.light',
-                color: 'primary.main',
-                '&:hover': {
-                  backgroundColor: 'primary.light',
-                },
-                '& .MuiListItemIcon-root': {
-                  color: 'primary.main',
-                },
-              },
+            onClick={() => {
+              navigate(item.path);
+              if (isMobile) {
+                setMobileOpen(false);
+              }
             }}
           >
-            <ListItemIcon sx={{ color: location.pathname === item.path ? 'primary.main' : 'inherit' }}>
-              {item.icon}
-            </ListItemIcon>
+            <ListItemIcon>{item.icon}</ListItemIcon>
             <ListItemText primary={item.text} />
           </ListItem>
         ))}
       </List>
-    </Box>
+    </div>
   );
 
   return (
@@ -129,9 +119,7 @@ const DashboardLayout = ({ children }) => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-            Library Management System
-          </Typography>
+          <Box sx={{ flexGrow: 1 }} />
           <IconButton
             size="large"
             edge="end"
@@ -141,7 +129,11 @@ const DashboardLayout = ({ children }) => {
             onClick={handleProfileMenuOpen}
             color="inherit"
           >
-            <Avatar sx={{ width: 32, height: 32 }}>A</Avatar>
+            {user?.firstName ? (
+              <Avatar>{user.firstName[0].toUpperCase()}</Avatar>
+            ) : (
+              <AccountCircleIcon />
+            )}
           </IconButton>
           <Menu
             id="menu-appbar"
@@ -158,84 +150,52 @@ const DashboardLayout = ({ children }) => {
             open={Boolean(anchorEl)}
             onClose={handleProfileMenuClose}
           >
-            <MenuItem onClick={() => {
-              handleProfileMenuClose();
-              navigate('/dashboard/profile');
-            }}>
+            <MenuItem onClick={handleProfileClick}>
+              <ListItemIcon>
+                <AccountCircleIcon fontSize="small" />
+              </ListItemIcon>
               Profile
             </MenuItem>
-            <MenuItem onClick={() => {
-              handleProfileMenuClose();
-              navigate('/dashboard/settings');
-            }}>
-              Settings
-            </MenuItem>
-            <Divider />
-            <MenuItem onClick={() => {
-              handleProfileMenuClose();
-              handleLogout();
-            }}>
+            <MenuItem onClick={handleLogout}>
+              <ListItemIcon>
+                <LogoutIcon fontSize="small" />
+              </ListItemIcon>
               Logout
             </MenuItem>
           </Menu>
         </Toolbar>
       </AppBar>
-
       <Box
         component="nav"
-        sx={{ width: { md: drawerWidth }, flexShrink: { md: 0 } }}
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
       >
-        {isMobile ? (
-          <Drawer
-            variant="temporary"
-            open={mobileOpen}
-            onClose={handleDrawerToggle}
-            ModalProps={{
-              keepMounted: true, // Better open performance on mobile
-            }}
-            sx={{
-              display: { xs: 'block', md: 'none' },
-              '& .MuiDrawer-paper': { 
-                boxSizing: 'border-box', 
-                width: drawerWidth,
-                bgcolor: 'background.paper',
-              },
-            }}
-          >
-            {drawer}
-          </Drawer>
-        ) : (
-          <Drawer
-            variant="permanent"
-            sx={{
-              display: { xs: 'none', md: 'block' },
-              '& .MuiDrawer-paper': { 
-                boxSizing: 'border-box', 
-                width: drawerWidth,
-                bgcolor: 'background.paper',
-                borderRight: '1px solid',
-                borderColor: 'divider',
-              },
-            }}
-            open
-          >
-            {drawer}
-          </Drawer>
-        )}
+        <Drawer
+          variant={isMobile ? 'temporary' : 'permanent'}
+          open={mobileOpen}
+          onClose={handleDrawerToggle}
+          ModalProps={{
+            keepMounted: true, // Better open performance on mobile.
+          }}
+          sx={{
+            '& .MuiDrawer-paper': {
+              boxSizing: 'border-box',
+              width: drawerWidth,
+            },
+          }}
+        >
+          {drawer}
+        </Drawer>
       </Box>
-
       <Box
         component="main"
         sx={{
           flexGrow: 1,
           p: 3,
-          width: { md: `calc(100% - ${drawerWidth}px)` },
-          minHeight: '100vh',
-          bgcolor: 'background.default',
+          width: { sm: `calc(100% - ${drawerWidth}px)` },
+          mt: '64px'
         }}
       >
-        <Toolbar />
-        {children}
+        <Outlet />
       </Box>
     </Box>
   );

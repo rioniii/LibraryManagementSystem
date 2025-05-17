@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System;
 
 namespace LibraryManagementSystem.Server.Controllers
 {
@@ -77,6 +78,13 @@ namespace LibraryManagementSystem.Server.Controllers
             return book;
         }
 
+        // GET: api/Book/categories
+        [HttpGet("categories")]
+        public async Task<ActionResult<IEnumerable<Category>>> GetCategories()
+        {
+            return await _context.Categories.ToListAsync();
+        }
+
         // POST: api/books
         [HttpPost]
         public async Task<ActionResult<BookDto>> PostBook(BookCreateDto bookDto)
@@ -97,7 +105,7 @@ namespace LibraryManagementSystem.Server.Controllers
                 Description = bookDto.Description,
                 CoverImageURL = bookDto.CoverImageURL,
                 Location = bookDto.Location,
-                AddedDate = bookDto.AddedDate,
+                AddedDate = DateTime.UtcNow,
                 CategoryId = bookDto.CategoryId,
                 Status = bookDto.Status
             };

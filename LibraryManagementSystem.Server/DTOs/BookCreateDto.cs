@@ -13,7 +13,6 @@ namespace LibraryManagementSystem.Server.DTOs
         public string Description { get; set; } = string.Empty;
         public string CoverImageURL { get; set; } = string.Empty;
         public string Location { get; set; } = string.Empty;
-        public DateTime AddedDate { get; set; }
         public int CategoryId { get; set; }
         public BookStatus Status { get; set; }
     }
