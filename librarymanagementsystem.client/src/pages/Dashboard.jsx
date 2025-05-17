@@ -62,17 +62,20 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [usersRes, booksRes] = await Promise.all([
+      const [usersRes, booksRes, loansRes] = await Promise.all([
         axios.get('http://localhost:5022/api/Account/users'),
-        axios.get('http://localhost:5022/api/Book')
+        axios.get('http://localhost:5022/api/Book'),
+        axios.get('http://localhost:5022/api/BookLoan')
       ]);
+
+      const activeLoans = loansRes.data.filter(loan => loan.status === 'Borrowed');
 
       setUsers(usersRes.data);
       setBooks(booksRes.data);
       setStats({
         totalUsers: usersRes.data.length,
         totalBooks: booksRes.data.length,
-        totalLoans: 0 // TODO: Implement when loan system is ready
+        totalLoans: activeLoans.length
       });
       setLoading(false);
     } catch (error) {
@@ -179,7 +182,7 @@ const Dashboard = () => {
             <Typography variant="h5">{stats.totalUsers}</Typography>
             <Typography color="text.secondary">Total Users</Typography>
           </Paper>
-        </Grid>
+          </Grid>
         <Grid item xs={12} sm={4}>
           <Paper elevation={2} sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
             <MenuBookIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
@@ -199,8 +202,8 @@ const Dashboard = () => {
       {/* Quick Actions */}
       <Box sx={{ mb: 6 }}>
         <Typography variant="h5" gutterBottom>Quick Actions</Typography>
-        <Button
-          variant="contained"
+      <Button
+        variant="contained"
           startIcon={<AddIcon />}
           onClick={handleAddBookClick}
           sx={{ mr: 2 }}
@@ -376,7 +379,7 @@ const Dashboard = () => {
           <Button onClick={handleCloseDeleteConfirm}>Cancel</Button>
           <Button onClick={handleConfirmDelete} color="error" autoFocus>
             Delete
-          </Button>
+      </Button>
         </DialogActions>
       </Dialog>
     </Container>

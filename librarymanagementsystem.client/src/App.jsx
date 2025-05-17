@@ -4,7 +4,6 @@ import { CssBaseline, ThemeProvider, Box } from '@mui/material';
 import MainLayout from './components/layout/MainLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
-import BookList from './components/books/BookList';
 import Home from './pages/Home';
 import AboutUs from './pages/AboutUs';
 import ContactUs from './pages/ContactUs';
@@ -18,6 +17,8 @@ import ManageUsersPage from './pages/ManageUsersPage';
 import ManageBooksPage from './pages/ManageBooksPage';
 import ManageBookLoansPage from './pages/ManageBookLoansPage';
 import ManageCategoriesPage from './pages/ManageCategoriesPage';
+import BorrowedBooksPage from './pages/BorrowedBooksPage';
+import BooksPage from './pages/BooksPage';
 
 function App() {
   return (
@@ -31,14 +32,12 @@ function App() {
             <Route index element={<Home />} />
             <Route path="about" element={<AboutUs />} />
             <Route path="contact" element={<ContactUs />} />
-            {/* BookList is now used directly in the protected dashboard route */}
-            {/* <Route path="books" element={<BookList />} /> */}
           </Route>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
           {/* Public Books Route */}
-          <Route path="/books" element={<BookList />} />
+          <Route path="/books" element={<BooksPage />} />
 
           {/* Protected Routes */}
           <Route
@@ -46,6 +45,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-books"
+            element={
+              <ProtectedRoute>
+                <BorrowedBooksPage />
               </ProtectedRoute>
             }
           />

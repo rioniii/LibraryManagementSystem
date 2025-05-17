@@ -94,6 +94,39 @@ namespace LibraryManagementSystem.Server.Controllers
             return CreatedAtAction(nameof(GetBookLoan), new { id = bookLoan.BookLoanId }, dto);
         }
 
+        // GET: api/BookLoan/user/{userId}
+        [HttpGet("user/{userId}")]
+        public async Task<ActionResult<IEnumerable<object>>> GetBookLoansByUser(string userId)
+        {
+            Console.WriteLine($"Received request for user ID: {userId}");
+
+            var loans = await _context.BookLoans
+                .Where(bl => bl.UserId == userId)
+                .Include(bl => bl.Book)
+                .Select(bl => new {
+                    bl.BookLoanId,
+                    bl.BookId,
+                    BookTitle = bl.Book != null ? bl.Book.Title : "",
+                    bl.UserId,
+                    UserName = bl.User != null ? bl.User.UserName ?? "" : "", // Include UserName if needed
+                    bl.LoanDate,
+                    bl.DueDate,
+                    bl.ReturnDate,
+                    bl.Status,
+                    bl.FineAmount
+                })
+                .ToListAsync();
+
+            Console.WriteLine($"Found {loans.Count} book loans for user ID: {userId}");
+
+            if (loans == null || !loans.Any())
+            {
+                return NotFound("No book loans found for this user.");
+            }
+
+            return Ok(loans);
+        }
+
         // PUT: api/bookloan/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBookLoan(int id, BookLoanDto dto)

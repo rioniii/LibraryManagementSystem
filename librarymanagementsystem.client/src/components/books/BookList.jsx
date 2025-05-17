@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Typography,
+  Grid,
   Card,
   CardContent,
   CardMedia,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   TextField,
+  InputAdornment,
+  IconButton,
   Container,
   CircularProgress,
   Alert,
-  InputAdornment,
-  Grid
+  Button,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import axios from 'axios';
 
 const BookList = () => {
   const [search, setSearch] = useState('');
@@ -129,7 +131,7 @@ const BookList = () => {
                   Publisher: {book.publisher}
                 </Typography>
                 <Typography variant="body2">
-                  Stock: {book.totalCopies} | Available: {book.status}
+                  Stock: {book.totalCopies}
                 </Typography>
                 {book.description && (
                   <Typography variant="body2" sx={{ mt: 1, color: 'text.disabled', overflow: 'hidden', textOverflow: 'ellipsis', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' }}>

@@ -31,7 +31,8 @@ import {
   PersonAdd as RegisterIcon,
   LibraryBooks as LibraryIcon,
   Info as InfoIcon,
-  ContactMail as ContactMailIcon
+  ContactMail as ContactMailIcon,
+  MenuBook as MenuBookIcon
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import authService from '../services/authService';
@@ -57,8 +58,10 @@ function Navbar() {
           authService.logout();
           setUserInfo(null);
         });
+    } else {
+      setUserInfo(null);
     }
-  }, [location.pathname]); // Refresh user info when route changes
+  }, []);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -77,7 +80,6 @@ function Navbar() {
     setUserInfo(null);
     handleClose();
     navigate('/login');
-    window.location.reload(); // Force reload to reset app state
   };
 
   const menuItems = [
@@ -85,7 +87,8 @@ function Navbar() {
     { text: 'Books', icon: <BookIcon />, path: '/books' },
     { text: 'About', icon: <InfoIcon />, path: '/about' },
     { text: 'Contact', icon: <ContactMailIcon />, path: '/contact' },
-    ...(userInfo?.roles?.includes('Admin') ? [{ text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' }] : [])
+    ...(userInfo ? [{ text: 'My Books', icon: <MenuBookIcon />, path: '/my-books' }] : []),
+    ...(userInfo?.roles?.includes('Admin') ? [{ text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' }] : []),
   ];
 
   const isActive = (path) => location.pathname === path;
@@ -113,7 +116,7 @@ function Navbar() {
             <ListItemIcon sx={{ color: isActive(item.path) ? 'primary.main' : 'inherit' }}>
               {item.icon}
             </ListItemIcon>
-            <ListItemText 
+            <ListItemText
               primary={item.text}
               primaryTypographyProps={{
                 color: isActive(item.path) ? 'primary.main' : 'inherit',
@@ -182,6 +185,7 @@ function Navbar() {
         <Toolbar disableGutters>
           <Typography
             variant="h6"
+            noWrap
             component={RouterLink}
             to="/"
             sx={{
@@ -233,24 +237,27 @@ function Navbar() {
               {userInfo ? (
                 <>
                   <Tooltip title={`${userInfo.firstName} ${userInfo.lastName}`}>
-                    <IconButton
-                      onClick={handleMenu}
-                      size="small"
-                      sx={{ ml: 2 }}
-                    >
-                      <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main' }}>
-                        {userInfo.firstName?.[0]?.toUpperCase()}
-                      </Avatar>
+                    <IconButton onClick={handleMenu} sx={{ p: 0 }}>
+                      <Avatar alt={userInfo.userName} src={userInfo.profilePicture} />
                     </IconButton>
                   </Tooltip>
                   <Menu
+                    sx={{ mt: '45px' }}
+                    id="menu-appbar"
                     anchorEl={anchorEl}
+                    anchorOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
+                    keepMounted
+                    transformOrigin={{
+                      vertical: 'top',
+                      horizontal: 'right',
+                    }}
                     open={Boolean(anchorEl)}
                     onClose={handleClose}
-                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
                   >
-                    <MenuItem component={RouterLink} to="/profile" onClick={handleClose}>
+                    <MenuItem onClick={handleClose} component={RouterLink} to="/profile">
                       <ListItemIcon>
                         <PersonIcon fontSize="small" />
                       </ListItemIcon>
@@ -265,38 +272,16 @@ function Navbar() {
                   </Menu>
                 </>
               ) : (
-                <>
-                  <Button
-                    component={RouterLink}
-                    to="/login"
-                    color="inherit"
-                    startIcon={<LoginIcon />}
-                    sx={{
-                      '&:hover': {
-                        backgroundColor: 'primary.light',
-                      },
-                    }}
-                  >
-                    Login
-                  </Button>
-                  <Button
-                    component={RouterLink}
-                    to="/register"
-                    variant="contained"
-                    color="primary"
-                    startIcon={<RegisterIcon />}
-                  >
-                    Register
-                  </Button>
-                </>
+                <Box>
+                  <Button color="inherit" component={RouterLink} to="/login" sx={{ mr: 1 }}>Login</Button>
+                  <Button variant="contained" component={RouterLink} to="/register">Register</Button>
+                </Box>
               )}
             </Box>
           )}
         </Toolbar>
       </Container>
-
       <Drawer
-        variant="temporary"
         anchor="right"
         open={mobileOpen}
         onClose={handleDrawerToggle}
@@ -305,11 +290,7 @@ function Navbar() {
         }}
         sx={{
           display: { xs: 'block', md: 'none' },
-          '& .MuiDrawer-paper': {
-            boxSizing: 'border-box',
-            width: 240,
-            bgcolor: 'background.paper',
-          },
+          '& .MuiDrawer-paper': { boxSizing: 'border-box', width: 240 },
         }}
       >
         {drawer}
@@ -318,4 +299,4 @@ function Navbar() {
   );
 }
 
-export default Navbar; 
+export default Navbar;
