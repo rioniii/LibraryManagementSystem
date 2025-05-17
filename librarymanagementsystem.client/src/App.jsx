@@ -17,7 +17,6 @@ import Profile from './pages/Profile';
 import ManageUsersPage from './pages/ManageUsersPage';
 import ManageBooksPage from './pages/ManageBooksPage';
 import ManageBookLoansPage from './pages/ManageBookLoansPage';
-import ManageCategoriesPage from './pages/ManageCategoriesPage';
 
 function App() {
   return (
@@ -60,7 +59,6 @@ function App() {
             <Route path="users" element={<ManageUsersPage />} />
             <Route path="books" element={<ManageBooksPage />} />
             <Route path="loans" element={<ManageBookLoansPage />} />
-            <Route path="categories" element={<ManageCategoriesPage />} />
             <Route path="settings" element={<div>Settings</div>} />
           </Route>
         </Routes>
