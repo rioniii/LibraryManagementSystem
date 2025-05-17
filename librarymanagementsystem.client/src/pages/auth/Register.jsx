@@ -59,7 +59,14 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await authService.register(formData);
+      const response = await authService.register(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName,
+        formData.contactNumber,
+        formData.address
+      );
       
       if (response.success) {
         // Redirect based on user role

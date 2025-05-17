@@ -236,7 +236,7 @@ const Home = () => {
                 Our digital library offers a vast collection of resources, from academic texts
                 to popular literature, all available at your fingertips.
               </Typography>
-              <Button variant="contained" color="primary" size="large" sx={{ mt: 2 }}>
+              <Button  variant="contained" color="primary" size="large" sx={{ mt: 2 }}>
                 Learn More About Us
               </Button>
             </Grid>

@@ -2,36 +2,43 @@ import axiosInstance from './axiosConfig';
 
 const authService = {
   async login(email, password) {
-    try {
-      const response = await axiosInstance.post('/Auth/login', {
-        email,
-        password
-      });
-      
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-      }
-      
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'An error occurred during login' };
+    const response = await fetch('http://localhost:5022/api/Account/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
     }
+
+    return response.json();
   },
 
-  async register(userData) {
-    try {
-      const response = await axiosInstance.post('/Auth/register', userData);
-      
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data.user));
-      }
-      
-      return response.data;
-    } catch (error) {
-      throw error.response?.data || { message: 'An error occurred during registration' };
+  async register(email, password, firstName, lastName, contactNumber, address) {
+    const response = await fetch('http://localhost:5022/api/Account/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ 
+        email, 
+        password, 
+        firstName, 
+        lastName, 
+        contactNumber, 
+        address 
+      }),
+    });
+
+    if (!response.ok) {
+      const errorResponse = await response.json();
+      throw new Error(`Network response was not ok: ${errorResponse.message || response.statusText}`);
     }
+
+    return response.json();
   },
 
   logout() {

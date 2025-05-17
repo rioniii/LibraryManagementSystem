@@ -18,6 +18,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import Navbar from '../components/layout/Navbar';
+import authService from '../services/authService';
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -26,6 +27,8 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    contactNumber: '',
+    address: '',
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -52,12 +55,20 @@ const Register = () => {
     }
 
     try {
-      // Here you would typically make an API call to your backend
-      console.log('Registration attempt with:', formData);
-      // For now, we'll just simulate a successful registration
+      const response = await authService.register(
+        formData.email,
+        formData.password,
+        formData.firstName,
+        formData.lastName,
+        formData.contactNumber,
+        formData.address
+      );
+      console.log('Registration successful:', response);
       navigate('/login');
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      // Show the full error message from the backend if available
+      setError(err.message || 'Registration failed');
+      console.error('Error during registration:', err);
     }
   };
 

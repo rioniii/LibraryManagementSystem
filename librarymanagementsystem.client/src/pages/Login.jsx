@@ -41,9 +41,11 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    console.log('Form submitted:', formData);
 
     try {
       const response = await authService.login(formData.email, formData.password);
+      console.log('Response from server:', response);
       if (response.success) {
         if (authService.isAdmin()) {
           navigate('/dashboard', { replace: true });
@@ -54,6 +56,7 @@ const Login = () => {
         setError('Invalid email or password');
       }
     } catch (err) {
+      console.error('Error during login:', err);
       setError('Invalid email or password');
     }
   };
