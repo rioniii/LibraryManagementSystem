@@ -116,7 +116,15 @@ const ManageBooksPage = () => {
   };
 
   const handleSaveNewBook = () => {
-    axios.post('http://localhost:5022/api/Book', newBookData)
+    const bookDataToSend = {
+      ...newBookData,
+      publicationYear: parseInt(newBookData.publicationYear, 10) || 0, // Convert to integer
+      totalCopies: parseInt(newBookData.totalCopies, 10) || 0, // Convert to integer
+      categoryId: parseInt(newBookData.categoryId, 10) || 0, // Convert to integer
+      status: parseInt(newBookData.status, 10) || 0, // Ensure status is an integer
+    };
+
+    axios.post('http://localhost:5022/api/Book', bookDataToSend)
       .then(response => {
         console.log('Book added successfully:', response.data);
         handleCloseAddBookDialog();

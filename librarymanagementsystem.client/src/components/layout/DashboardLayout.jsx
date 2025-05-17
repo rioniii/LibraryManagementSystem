@@ -26,7 +26,8 @@ import {
   LocalLibrary as LocalLibraryIcon,
   Settings as SettingsIcon,
   AccountCircle as AccountCircleIcon,
-  Logout as LogoutIcon
+  Logout as LogoutIcon,
+  Category as CategoryIcon
 } from '@mui/icons-material';
 import authService from '../../services/authService';
 
@@ -68,6 +69,7 @@ const DashboardLayout = () => {
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Users', icon: <PeopleIcon />, path: '/dashboard/users' },
     { text: 'Books', icon: <MenuBookIcon />, path: '/dashboard/books' },
+    { text: 'Categories', icon: <CategoryIcon />, path: '/dashboard/categories' },
     { text: 'Book Loans', icon: <LocalLibraryIcon />, path: '/dashboard/loans' },
     { text: 'Settings', icon: <SettingsIcon />, path: '/dashboard/settings' }
   ];
