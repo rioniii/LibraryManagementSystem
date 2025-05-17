@@ -27,7 +27,8 @@ import {
   Settings as SettingsIcon,
   AccountCircle as AccountCircleIcon,
   Logout as LogoutIcon,
-  Category as CategoryIcon
+  Category as CategoryIcon,
+  Home as HomeIcon
 } from '@mui/icons-material';
 import authService from '../../services/authService';
 
@@ -66,6 +67,7 @@ const DashboardLayout = () => {
   };
 
   const menuItems = [
+    { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' },
     { text: 'Users', icon: <PeopleIcon />, path: '/dashboard/users' },
     { text: 'Books', icon: <MenuBookIcon />, path: '/dashboard/books' },

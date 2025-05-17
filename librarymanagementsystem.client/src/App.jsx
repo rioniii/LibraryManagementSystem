@@ -37,6 +37,9 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
 
+          {/* Public Books Route */}
+          <Route path="/books" element={<BookList />} />
+
           {/* Protected Routes */}
           <Route
             path="/profile"
