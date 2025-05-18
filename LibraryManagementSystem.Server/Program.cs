@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.AspNetCore.Cors.Infrastructure;
-using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -115,21 +114,6 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
-    // Open frontend URL in browser after Swagger
-    var frontendUrl = "https://localhost:5173";
-    try
-    {
-        Process.Start(new ProcessStartInfo
-        {
-            FileName = frontendUrl,
-            UseShellExecute = true
-        });
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Failed to open frontend URL: {ex.Message}");
-    }
 }
 
 // Only use HTTPS redirection in production

@@ -84,7 +84,7 @@ namespace LibraryManagementSystem.Server.Controllers
                 DueDate = dto.DueDate,
                 ReturnDate = dto.ReturnDate,
                 Status = dto.Status,
-                FineAmount = 10.00m // Set automatic fine amount to $10
+                FineAmount = (decimal)dto.FineAmount
             };
 
             _context.BookLoans.Add(bookLoan);

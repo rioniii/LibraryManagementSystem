@@ -4,6 +4,8 @@ import {
   Typography,
   Paper,
   Grid,
+  Button,
+  TextField,
   Container,
   CircularProgress,
   Alert,
@@ -18,13 +20,14 @@ import {
   DialogContent,
   DialogTitle,
   IconButton,
-  Tooltip,
-  Button
+  Tooltip
 } from '@mui/material';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AddIcon from '@mui/icons-material/Add';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
+import ContactMailIcon from '@mui/icons-material/ContactMail';
 import axios from 'axios';
 
 const Dashboard = () => {
@@ -38,7 +41,21 @@ const Dashboard = () => {
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [contactSubmissions, setContactSubmissions] = useState([]);
-  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null });
+  const [openAddBookDialog, setOpenAddBookDialog] = useState(false);
+  const [newBookData, setNewBookData] = useState({
+    isbn: '',
+    title: '',
+    author: '',
+    publicationYear: '',
+    publisher: '',
+    totalCopies: '',
+    description: '',
+    coverImageURL: '',
+    location: '',
+    categoryId: '',
+    status: 0
+  });
+  const [deleteConfirm, setDeleteConfirm] = useState({ open: false, id: null, type: null });
 
   useEffect(() => {
     fetchDashboardData();
@@ -72,24 +89,70 @@ const Dashboard = () => {
     }
   };
 
-  const handleDeleteClick = (id) => {
-    setDeleteConfirm({ open: true, id });
+  const handleAddBookClick = () => {
+    setOpenAddBookDialog(true);
+  };
+
+  const handleCloseAddBookDialog = () => {
+    setOpenAddBookDialog(false);
+    setNewBookData({
+      isbn: '',
+      title: '',
+      author: '',
+      publicationYear: '',
+      publisher: '',
+      totalCopies: '',
+      description: '',
+      coverImageURL: '',
+      location: '',
+      categoryId: '',
+      status: 0
+    });
+  };
+
+  const handleNewBookInputChange = (event) => {
+    const { name, value } = event.target;
+    setNewBookData(prevData => ({
+      ...prevData,
+      [name]: value
+    }));
+  };
+
+  const handleSaveNewBook = () => {
+    axios.post('http://localhost:5022/api/Book', newBookData)
+      .then(response => {
+        console.log('Book added successfully:', response.data);
+        handleCloseAddBookDialog();
+        fetchDashboardData();
+      })
+      .catch(error => {
+        console.error('Error adding book:', error);
+      });
+  };
+
+  const handleDeleteClick = (id, type) => {
+    setDeleteConfirm({ open: true, id, type });
   };
 
   const handleCloseDeleteConfirm = () => {
-    setDeleteConfirm({ open: false, id: null });
+    setDeleteConfirm({ open: false, id: null, type: null });
   };
 
   const handleConfirmDelete = () => {
-    const { id } = deleteConfirm;
-    axios.delete(`http://localhost:5022/api/Contact/${id}`)
+    const { id, type } = deleteConfirm;
+    const endpoint = type === 'user' 
+      ? `http://localhost:5022/api/Account/users/${id}`
+      : type === 'book' ? `http://localhost:5022/api/Book/${id}`
+      : `http://localhost:5022/api/Contact/${id}`;
+
+    axios.delete(endpoint)
       .then(() => {
-        console.log(`Contact submission ${id} deleted successfully`);
+        console.log(`${type} ${id} deleted successfully`);
         handleCloseDeleteConfirm();
         fetchDashboardData();
       })
       .catch(error => {
-        console.error(`Error deleting contact submission ${id}:`, error);
+        console.error(`Error deleting ${type} ${id}:`, error);
         handleCloseDeleteConfirm();
       });
   };
@@ -124,7 +187,7 @@ const Dashboard = () => {
             <Typography variant="h5">{stats.totalUsers}</Typography>
             <Typography color="text.secondary">Total Users</Typography>
           </Paper>
-        </Grid>
+          </Grid>
         <Grid item xs={12} sm={4}>
           <Paper elevation={2} sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
             <MenuBookIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
@@ -141,6 +204,19 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
+      {/* Quick Actions */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" gutterBottom>Quick Actions</Typography>
+      <Button
+        variant="contained"
+          startIcon={<AddIcon />}
+          onClick={handleAddBookClick}
+          sx={{ mr: 2 }}
+        >
+          Add New Book
+        </Button>
+      </Box>
+
       {/* Recent Users */}
       <Box sx={{ mb: 6 }}>
         <Typography variant="h5" gutterBottom>Recent Users</Typography>
@@ -150,6 +226,7 @@ const Dashboard = () => {
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Username</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -157,6 +234,17 @@ const Dashboard = () => {
                 <TableRow key={user.id}>
                   <TableCell>{user.userName}</TableCell>
                   <TableCell>{user.email}</TableCell>
+                  <TableCell>
+                    <Tooltip title="Delete User">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteClick(user.id, 'user')}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -173,6 +261,7 @@ const Dashboard = () => {
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Author</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -180,6 +269,17 @@ const Dashboard = () => {
                 <TableRow key={book.bookId}>
                   <TableCell>{book.title}</TableCell>
                   <TableCell>{book.author}</TableCell>
+                  <TableCell>
+                    <Tooltip title="Delete Book">
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteClick(book.bookId, 'book')}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -216,7 +316,7 @@ const Dashboard = () => {
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={() => handleDeleteClick(submission.id)}
+                          onClick={() => handleDeleteClick(submission.id, 'submission')}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -232,6 +332,84 @@ const Dashboard = () => {
         )}
       </Box>
 
+      {/* Add Book Dialog */}
+      <Dialog open={openAddBookDialog} onClose={handleCloseAddBookDialog} fullWidth maxWidth="sm">
+        <DialogTitle>Add New Book</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            margin="dense"
+            name="isbn"
+            label="ISBN"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newBookData.isbn}
+            onChange={handleNewBookInputChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            name="title"
+            label="Title"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newBookData.title}
+            onChange={handleNewBookInputChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            name="author"
+            label="Author"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newBookData.author}
+            onChange={handleNewBookInputChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            name="publicationYear"
+            label="Publication Year"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={newBookData.publicationYear}
+            onChange={handleNewBookInputChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            name="publisher"
+            label="Publisher"
+            type="text"
+            fullWidth
+            variant="outlined"
+            value={newBookData.publisher}
+            onChange={handleNewBookInputChange}
+            sx={{ mb: 2 }}
+          />
+          <TextField
+            margin="dense"
+            name="totalCopies"
+            label="Total Copies"
+            type="number"
+            fullWidth
+            variant="outlined"
+            value={newBookData.totalCopies}
+            onChange={handleNewBookInputChange}
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseAddBookDialog}>Cancel</Button>
+          <Button onClick={handleSaveNewBook} variant="contained">Save Book</Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog
         open={deleteConfirm.open}
@@ -244,14 +422,14 @@ const Dashboard = () => {
         </DialogTitle>
         <DialogContent>
           <Typography id="alert-dialog-description">
-            Are you sure you want to delete this contact submission?
+            Are you sure you want to delete this {deleteConfirm.type === 'user' ? 'user' : deleteConfirm.type === 'book' ? 'book' : 'submission'}?
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDeleteConfirm}>Cancel</Button>
           <Button onClick={handleConfirmDelete} color="error" autoFocus>
             Delete
-          </Button>
+      </Button>
         </DialogActions>
       </Dialog>
     </Container>

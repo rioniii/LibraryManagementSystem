@@ -1,114 +1,56 @@
-import axios from 'axios';
 import { jwtDecode } from "jwt-decode";
 
-const API_URL = 'http://localhost:5022/api/Account';
-
-class AuthService {
+const authService = {
   async login(email, password) {
-    try {
-      const response = await axios.post(`${API_URL}/login`, { email, password });
-      if (response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem('user', JSON.stringify(response.data));
-      }
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data || 'Login failed');
+    const response = await fetch('http://localhost:5022/api/Account/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    if (!response.ok) throw new Error('Login failed');
+    const data = await response.json();
+    localStorage.setItem('token', data.token);
+    if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+    } else {
+      const user = jwtDecode(data.token);
+      localStorage.setItem('user', JSON.stringify(user));
     }
-  }
-
-  async register(email, password, firstName, lastName, contactNumber, address) {
-    try {
-      const response = await axios.post(`${API_URL}/register`, {
-        email,
-        password,
-        firstName,
-        lastName,
-        contactNumber,
-        address
-      });
-      return response.data;
-    } catch (error) {
-      throw new Error(error.response?.data || 'Registration failed');
+    return data;
+  },
+  async register(email, password, firstName, lastName) {
+    const response = await fetch('http://localhost:5022/api/Account/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password, firstName, lastName }),
+    });
+    if (!response.ok) throw new Error('Registration failed');
+    const data = await response.json();
+    localStorage.setItem('token', data.token);
+    if (data.user) {
+      localStorage.setItem('user', JSON.stringify(data.user));
+    } else {
+      const user = jwtDecode(data.token);
+      localStorage.setItem('user', JSON.stringify(user));
     }
-  }
-
+    return data;
+  },
+  getCurrentUser() {
+    const user = localStorage.getItem('user');
+    if (!user || user === 'undefined') return null;
+    return JSON.parse(user);
+  },
+  isAdmin() {
+    const user = this.getCurrentUser();
+    return user?.roles?.includes('Admin');
+  },
+  isUser() {
+    const user = this.getCurrentUser();
+    return user?.roles?.includes('User');
+  },
   logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }
-
-  getCurrentUser() {
-    const userStr = localStorage.getItem('user');
-    if (userStr) {
-      try {
-        return JSON.parse(userStr);
-      } catch (e) {
-        this.logout();
-        return null;
-      }
-    }
-    return null;
-  }
-
-  getToken() {
-    return localStorage.getItem('token');
-  }
-
-  isAuthenticated() {
-    const token = this.getToken();
-    if (!token) return false;
-
-    try {
-      // Check if token is expired
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const expiry = payload.exp * 1000; // Convert to milliseconds
-      return Date.now() < expiry;
-    } catch (e) {
-      this.logout();
-      return false;
-    }
-  }
-
-  isAdmin() {
-    const user = this.getCurrentUser();
-    return user?.roles?.includes('Admin');
-  }
-
-  isUser() {
-    const user = this.getCurrentUser();
-    return user?.roles?.includes('User');
-  }
-
-  // Add axios interceptor for token handling
-  setupAxiosInterceptors() {
-    axios.interceptors.request.use(
-      (config) => {
-        const token = this.getToken();
-        if (token) {
-          config.headers.Authorization = `Bearer ${token}`;
-        }
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      }
-    );
-
-    axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (error.response?.status === 401) {
-          this.logout();
-          window.location.href = '/login';
-        }
-        return Promise.reject(error);
-      }
-    );
-  }
-}
-
-const authService = new AuthService();
-authService.setupAxiosInterceptors();
-
+};
 export default authService; 
