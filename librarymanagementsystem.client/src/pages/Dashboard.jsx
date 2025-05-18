@@ -27,6 +27,7 @@ import AddIcon from '@mui/icons-material/Add';
 import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
+import ContactMailIcon from '@mui/icons-material/ContactMail';
 import axios from 'axios';
 
 const Dashboard = () => {
@@ -39,6 +40,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
+  const [contactSubmissions, setContactSubmissions] = useState([]);
   const [openAddBookDialog, setOpenAddBookDialog] = useState(false);
   const [newBookData, setNewBookData] = useState({
     isbn: '',
@@ -62,16 +64,18 @@ const Dashboard = () => {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const [usersRes, booksRes, loansRes] = await Promise.all([
+      const [usersRes, booksRes, loansRes, contactRes] = await Promise.all([
         axios.get('http://localhost:5022/api/Account/users'),
         axios.get('http://localhost:5022/api/Book'),
-        axios.get('http://localhost:5022/api/BookLoan')
+        axios.get('http://localhost:5022/api/BookLoan'),
+        axios.get('http://localhost:5022/api/Contact')
       ]);
 
       const activeLoans = loansRes.data.filter(loan => loan.status === 'Borrowed');
 
       setUsers(usersRes.data);
       setBooks(booksRes.data);
+      setContactSubmissions(contactRes.data);
       setStats({
         totalUsers: usersRes.data.length,
         totalBooks: booksRes.data.length,
@@ -138,7 +142,8 @@ const Dashboard = () => {
     const { id, type } = deleteConfirm;
     const endpoint = type === 'user' 
       ? `http://localhost:5022/api/Account/users/${id}`
-      : `http://localhost:5022/api/Book/${id}`;
+      : type === 'book' ? `http://localhost:5022/api/Book/${id}`
+      : `http://localhost:5022/api/Contact/${id}`;
 
     axios.delete(endpoint)
       .then(() => {
@@ -282,6 +287,51 @@ const Dashboard = () => {
         </TableContainer>
       </Box>
 
+      {/* Contact Submissions */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" gutterBottom>Contact Submissions</Typography>
+        {contactSubmissions.length > 0 ? (
+          <TableContainer component={Paper} elevation={1} sx={{ borderRadius: 2 }}>
+            <Table>
+              <TableHead sx={{ bgcolor: 'primary.light' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Subject</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Message</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Submission Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {contactSubmissions.map(submission => (
+                  <TableRow key={submission.id}>
+                    <TableCell>{submission.name}</TableCell>
+                    <TableCell>{submission.email}</TableCell>
+                    <TableCell>{submission.subject}</TableCell>
+                    <TableCell>{submission.message}</TableCell>
+                    <TableCell>{new Date(submission.submissionDate).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      <Tooltip title="Delete Submission">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteClick(submission.id, 'submission')}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        ) : (
+          <Typography>No contact submissions found.</Typography>
+        )}
+      </Box>
+
       {/* Add Book Dialog */}
       <Dialog open={openAddBookDialog} onClose={handleCloseAddBookDialog} fullWidth maxWidth="sm">
         <DialogTitle>Add New Book</DialogTitle>
@@ -372,7 +422,7 @@ const Dashboard = () => {
         </DialogTitle>
         <DialogContent>
           <Typography id="alert-dialog-description">
-            Are you sure you want to delete this {deleteConfirm.type}?
+            Are you sure you want to delete this {deleteConfirm.type === 'user' ? 'user' : deleteConfirm.type === 'book' ? 'book' : 'submission'}?
           </Typography>
         </DialogContent>
         <DialogActions>

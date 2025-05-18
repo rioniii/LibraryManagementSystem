@@ -20,6 +20,7 @@ import {
   AccessTime
 } from '@mui/icons-material';
 import Navbar from '../components/Navbar';
+import axios from 'axios';
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -44,11 +45,13 @@ const ContactUs = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setSuccess(false);
 
     try {
-      // Here you would typically make an API call to your backend
-      console.log('Contact form submission:', formData);
-      // For now, we'll just simulate a successful submission
+      // Send form data to the backend ContactController
+      const response = await axios.post('http://localhost:5022/api/Contact', formData);
+      
+      console.log('Contact form submission successful:', response.data);
       setSuccess(true);
       setFormData({
         name: '',
@@ -57,6 +60,7 @@ const ContactUs = () => {
         message: '',
       });
     } catch (err) {
+      console.error('Error sending contact form:', err);
       setError('Failed to send message. Please try again.');
     }
   };

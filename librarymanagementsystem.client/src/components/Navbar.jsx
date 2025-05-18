@@ -86,7 +86,7 @@ function Navbar() {
     { text: 'Home', icon: <HomeIcon />, path: '/' },
     { text: 'Books', icon: <BookIcon />, path: '/books' },
     { text: 'About', icon: <InfoIcon />, path: '/about' },
-    { text: 'Contact', icon: <ContactMailIcon />, path: '/contact' },
+    ...(userInfo ? [{ text: 'Contact', icon: <ContactMailIcon />, path: '/contact' }] : []),
     ...(userInfo ? [{ text: 'My Books', icon: <MenuBookIcon />, path: '/my-books' }] : []),
     ...(userInfo?.roles?.includes('Admin') ? [{ text: 'Dashboard', icon: <DashboardIcon />, path: '/dashboard' }] : []),
   ];
