@@ -52,7 +52,12 @@ function Navbar() {
       fetch('http://localhost:5022/api/Account/me', {
         headers: { Authorization: `Bearer ${token}` }
       })
-        .then(res => res.json())
+        .then(res => {
+          if (!res.ok) {
+            throw new Error('Token invalid or expired');
+          }
+          return res.json();
+        })
         .then(data => setUserInfo(data))
         .catch(() => {
           authService.logout();
@@ -61,7 +66,7 @@ function Navbar() {
     } else {
       setUserInfo(null);
     }
-  }, []);
+  }, [location.pathname]); // Re-fetch user info when route changes
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -203,17 +208,7 @@ function Navbar() {
             Global Digital Library
           </Typography>
 
-          {isMobile ? (
-            <IconButton
-              color="inherit"
-              aria-label="open drawer"
-              edge="start"
-              onClick={handleDrawerToggle}
-              sx={{ ml: 2 }}
-            >
-              <MenuIcon />
-            </IconButton>
-          ) : (
+          {!isMobile ? (
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {menuItems.map((item) => (
                 <Tooltip key={item.text} title={item.text}>
@@ -238,7 +233,9 @@ function Navbar() {
                 <>
                   <Tooltip title={`${userInfo.firstName} ${userInfo.lastName}`}>
                     <IconButton onClick={handleMenu} sx={{ p: 0 }}>
-                      <Avatar alt={userInfo.userName} src={userInfo.profilePicture} />
+                      <Avatar alt={userInfo.userName} src={userInfo.profilePicture}>
+                        {userInfo.firstName?.[0]?.toUpperCase()}
+                      </Avatar>
                     </IconButton>
                   </Tooltip>
                   <Menu
@@ -278,6 +275,16 @@ function Navbar() {
                 </Box>
               )}
             </Box>
+          ) : (
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={handleDrawerToggle}
+              sx={{ ml: 2 }}
+            >
+              <MenuIcon />
+            </IconButton>
           )}
         </Toolbar>
       </Container>
