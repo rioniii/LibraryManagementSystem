@@ -3,6 +3,10 @@ using Microsoft.AspNetCore.Mvc;
 using LibraryManagementSystem.Server.Services;
 using Microsoft.AspNetCore.Identity;
 using LibraryManagementSystem.Server.Models;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace LibraryManagementSystem.Server.Controllers
 {
@@ -13,11 +17,13 @@ namespace LibraryManagementSystem.Server.Controllers
     {
         private readonly RoleService _roleService;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
 
-        public RoleController(RoleService roleService, UserManager<ApplicationUser> userManager)
+        public RoleController(RoleService roleService, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
         {
             _roleService = roleService;
             _userManager = userManager;
+            _roleManager = roleManager;
         }
 
         [HttpPost("assign")]
@@ -52,6 +58,61 @@ namespace LibraryManagementSystem.Server.Controllers
         {
             var result = await _roleService.IsUserInRole(userId, roleName);
             return Ok(result);
+        }
+
+        // GET: api/Role
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<IdentityRole>>> GetRoles()
+        {
+            return await _roleManager.Roles.ToListAsync();
+        }
+
+        // GET: api/Role/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<IdentityRole>> GetRole(string id)
+        {
+            var role = await _roleManager.FindByIdAsync(id);
+
+            if (role == null)
+            {
+                return NotFound();
+            }
+
+            return role;
+        }
+
+        // POST: api/Role
+        [HttpPost]
+        public async Task<ActionResult<IdentityRole>> PostRole(IdentityRole role)
+        {
+            var result = await _roleManager.CreateAsync(role);
+
+            if (result.Succeeded)
+            {
+                return CreatedAtAction(nameof(GetRole), new { id = role.Id }, role);
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        // DELETE: api/Role/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteRole(string id)
+        {
+            var role = await _roleManager.FindByIdAsync(id);
+            if (role == null)
+            {
+                return NotFound();
+            }
+
+            var result = await _roleManager.DeleteAsync(role);
+
+            if (result.Succeeded)
+            {
+                return NoContent();
+            }
+
+            return BadRequest(result.Errors);
         }
     }
 

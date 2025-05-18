@@ -28,6 +28,7 @@ const ManageBookLoansPage = () => {
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [editingLoan, setEditingLoan] = useState(null);
   const [fineAmount, setFineAmount] = useState('');
+  const [returnDate, setReturnDate] = useState('');
 
   useEffect(() => {
     fetchBookLoans();
@@ -50,6 +51,7 @@ const ManageBookLoansPage = () => {
   const handleEditClick = (loan) => {
     setEditingLoan(loan);
     setFineAmount(loan.fineAmount !== null ? loan.fineAmount.toFixed(2) : '');
+    setReturnDate(loan.returnDate ? loan.returnDate.split('T')[0] : '');
     setOpenEditDialog(true);
   };
 
@@ -57,10 +59,15 @@ const ManageBookLoansPage = () => {
     setOpenEditDialog(false);
     setEditingLoan(null);
     setFineAmount('');
+    setReturnDate('');
   };
 
   const handleFineAmountChange = (event) => {
     setFineAmount(event.target.value);
+  };
+
+  const handleReturnDateChange = (event) => {
+    setReturnDate(event.target.value);
   };
 
   const handleSaveLoan = async () => {
@@ -70,6 +77,7 @@ const ManageBookLoansPage = () => {
       const updatedLoanData = {
         ...editingLoan,
         fineAmount: parseFloat(fineAmount) || 0,
+        returnDate: returnDate || null,
       };
 
       delete updatedLoanData.bookTitle;
@@ -155,6 +163,20 @@ const ManageBookLoansPage = () => {
               <Typography variant="subtitle1" gutterBottom>
                 Status: {editingLoan.status}
               </Typography>
+              <TextField
+                margin="dense"
+                name="returnDate"
+                label="Return Date"
+                type="date"
+                fullWidth
+                variant="outlined"
+                value={returnDate}
+                onChange={handleReturnDateChange}
+                InputLabelProps={{
+                    shrink: true,
+                }}
+                sx={{ mt: 2 }}
+              />
               <TextField
                 margin="dense"
                 name="fineAmount"

@@ -28,6 +28,8 @@ import PeopleIcon from '@mui/icons-material/People';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import LocalLibraryIcon from '@mui/icons-material/LocalLibrary';
 import ContactMailIcon from '@mui/icons-material/ContactMail';
+import SettingsIcon from '@mui/icons-material/Settings';
+import { Link as RouterLink } from 'react-router-dom';
 import axios from 'axios';
 
 const Dashboard = () => {
@@ -41,6 +43,7 @@ const Dashboard = () => {
   const [users, setUsers] = useState([]);
   const [books, setBooks] = useState([]);
   const [contactSubmissions, setContactSubmissions] = useState([]);
+  const [bookLoans, setBookLoans] = useState([]);
   const [openAddBookDialog, setOpenAddBookDialog] = useState(false);
   const [newBookData, setNewBookData] = useState({
     isbn: '',
@@ -76,6 +79,7 @@ const Dashboard = () => {
       setUsers(usersRes.data);
       setBooks(booksRes.data);
       setContactSubmissions(contactRes.data);
+      setBookLoans(loansRes.data);
       setStats({
         totalUsers: usersRes.data.length,
         totalBooks: booksRes.data.length,
@@ -140,10 +144,20 @@ const Dashboard = () => {
 
   const handleConfirmDelete = () => {
     const { id, type } = deleteConfirm;
-    const endpoint = type === 'user' 
-      ? `http://localhost:5022/api/Account/users/${id}`
-      : type === 'book' ? `http://localhost:5022/api/Book/${id}`
-      : `http://localhost:5022/api/Contact/${id}`;
+    let endpoint = '';
+
+    switch (type) {
+      case 'contact':
+        endpoint = `http://localhost:5022/api/Contact/${id}`;
+        break;
+      case 'loan':
+        endpoint = `http://localhost:5022/api/BookLoan/${id}`;
+        break;
+      default:
+        console.error('Unknown delete type:', type);
+        handleCloseDeleteConfirm();
+        return;
+    }
 
     axios.delete(endpoint)
       .then(() => {
@@ -175,9 +189,16 @@ const Dashboard = () => {
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
-      <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
-        Dashboard Overview
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
+        <Typography variant="h4" gutterBottom sx={{ mb: 0 }}>
+          Dashboard Overview
+        </Typography>
+        <Tooltip title="Dashboard Settings">
+          <IconButton component={RouterLink} to="/dashboard/settings" color="inherit">
+            <SettingsIcon />
+          </IconButton>
+        </Tooltip>
+      </Box>
 
       {/* Stats Cards */}
       <Grid container spacing={3} sx={{ mb: 6 }}>
@@ -187,7 +208,7 @@ const Dashboard = () => {
             <Typography variant="h5">{stats.totalUsers}</Typography>
             <Typography color="text.secondary">Total Users</Typography>
           </Paper>
-          </Grid>
+        </Grid>
         <Grid item xs={12} sm={4}>
           <Paper elevation={2} sx={{ p: 3, textAlign: 'center', borderRadius: 2 }}>
             <MenuBookIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
@@ -204,19 +225,6 @@ const Dashboard = () => {
         </Grid>
       </Grid>
 
-      {/* Quick Actions */}
-      <Box sx={{ mb: 6 }}>
-        <Typography variant="h5" gutterBottom>Quick Actions</Typography>
-      <Button
-        variant="contained"
-          startIcon={<AddIcon />}
-          onClick={handleAddBookClick}
-          sx={{ mr: 2 }}
-        >
-          Add New Book
-        </Button>
-      </Box>
-
       {/* Recent Users */}
       <Box sx={{ mb: 6 }}>
         <Typography variant="h5" gutterBottom>Recent Users</Typography>
@@ -226,7 +234,6 @@ const Dashboard = () => {
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Username</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Email</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -234,17 +241,6 @@ const Dashboard = () => {
                 <TableRow key={user.id}>
                   <TableCell>{user.userName}</TableCell>
                   <TableCell>{user.email}</TableCell>
-                  <TableCell>
-                    <Tooltip title="Delete User">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteClick(user.id, 'user')}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -261,7 +257,6 @@ const Dashboard = () => {
               <TableRow>
                 <TableCell sx={{ fontWeight: 'bold' }}>Title</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Author</TableCell>
-                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -269,22 +264,60 @@ const Dashboard = () => {
                 <TableRow key={book.bookId}>
                   <TableCell>{book.title}</TableCell>
                   <TableCell>{book.author}</TableCell>
-                  <TableCell>
-                    <Tooltip title="Delete Book">
-                      <IconButton
-                        size="small"
-                        color="error"
-                        onClick={() => handleDeleteClick(book.bookId, 'book')}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
         </TableContainer>
+      </Box>
+
+      {/* Recent Loans */}
+      <Box sx={{ mb: 6 }}>
+        <Typography variant="h5" gutterBottom>Recent Loans</Typography>
+        {bookLoans.length > 0 ? (
+          <TableContainer component={Paper} elevation={1} sx={{ borderRadius: 2 }}>
+            <Table>
+              <TableHead sx={{ bgcolor: 'primary.light' }}>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Book Title</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>User Name</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Loan Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Due Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Return Date</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Status</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Fine Amount</TableCell>
+                  <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {bookLoans.slice(0, 5).map(loan => (
+                  <TableRow key={loan.bookLoanId}>
+                    <TableCell>{loan.bookTitle}</TableCell>
+                    <TableCell>{loan.userName}</TableCell>
+                    <TableCell>{new Date(loan.loanDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{new Date(loan.dueDate).toLocaleDateString()}</TableCell>
+                    <TableCell>{loan.returnDate ? new Date(loan.returnDate).toLocaleDateString() : '-'}</TableCell>
+                    <TableCell>{loan.status}</TableCell>
+                    <TableCell>${loan.fineAmount ? loan.fineAmount.toFixed(2) : '0.00'}</TableCell>
+                    <TableCell>
+                       <Tooltip title="Delete Loan">
+                        <IconButton
+                          size="small"
+                          color="error"
+                          onClick={() => handleDeleteClick(loan.bookLoanId, 'loan')}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+         ) : (
+          <Typography>No book loans found.</Typography>
+        )}
       </Box>
 
       {/* Contact Submissions */}
@@ -316,7 +349,7 @@ const Dashboard = () => {
                         <IconButton
                           size="small"
                           color="error"
-                          onClick={() => handleDeleteClick(submission.id, 'submission')}
+                          onClick={() => handleDeleteClick(submission.id, 'contact')}
                         >
                           <DeleteIcon fontSize="small" />
                         </IconButton>
@@ -422,14 +455,18 @@ const Dashboard = () => {
         </DialogTitle>
         <DialogContent>
           <Typography id="alert-dialog-description">
-            Are you sure you want to delete this {deleteConfirm.type === 'user' ? 'user' : deleteConfirm.type === 'book' ? 'book' : 'submission'}?
+            Are you sure you want to delete this {
+              deleteConfirm.type === 'contact' ? 'contact submission' :
+              deleteConfirm.type === 'loan' ? 'book loan' :
+              'item'
+            }?
           </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDeleteConfirm}>Cancel</Button>
           <Button onClick={handleConfirmDelete} color="error" autoFocus>
             Delete
-      </Button>
+          </Button>
         </DialogActions>
       </Dialog>
     </Container>

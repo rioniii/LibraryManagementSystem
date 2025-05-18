@@ -6,11 +6,13 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
+using Microsoft.AspNetCore.Authorization;
 
 namespace LibraryManagementSystem.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BookController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -22,6 +24,7 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // GET: api/books
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<BookDto>>> GetBooks()
         {
             return await _context.Books
@@ -47,6 +50,7 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // GET: api/books/{id}
         [HttpGet("{id}")]
+        [AllowAnonymous]
         public async Task<ActionResult<BookDto>> GetBook(int id)
         {
             var book = await _context.Books
@@ -87,6 +91,7 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // POST: api/books
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<BookDto>> PostBook(BookCreateDto bookDto)
         {
             if (!ModelState.IsValid)
@@ -137,6 +142,7 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // PUT: api/books/{id}
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutBook(int id, BookDto bookDto)
         {
             if (id != bookDto.BookId)
@@ -184,6 +190,7 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // DELETE: api/books/{id}
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteBook(int id)
         {
             var book = await _context.Books.FindAsync(id);

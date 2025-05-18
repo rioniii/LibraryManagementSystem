@@ -94,13 +94,15 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAllOrigins", builder =>
+    options.AddDefaultPolicy(builder =>
     {
-        builder.AllowAnyOrigin()
+        builder.WithOrigins("https://localhost:5173") // Allow your frontend origin
+               .AllowAnyHeader()
                .AllowAnyMethod()
-               .AllowAnyHeader();
+               .AllowCredentials();
     });
 });
 
@@ -126,7 +128,7 @@ if (!app.Environment.IsDevelopment())
 app.UseAuthentication(); 
 app.UseAuthorization();
 
-app.UseCors("AllowAllOrigins");
+app.UseCors(); // Use the CORS policy
 
 app.MapControllers();
 

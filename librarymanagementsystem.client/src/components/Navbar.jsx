@@ -18,7 +18,8 @@ import {
   ListItemText,
   ListItemIcon,
   Divider,
-  Tooltip
+  Tooltip,
+  Switch
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -32,10 +33,14 @@ import {
   LibraryBooks as LibraryIcon,
   Info as InfoIcon,
   ContactMail as ContactMailIcon,
-  MenuBook as MenuBookIcon
+  MenuBook as MenuBookIcon,
+  Brightness7 as Brightness7Icon,
+  Brightness4 as Brightness4Icon
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import authService from '../services/authService';
+import { useThemeContext } from '../ThemeContext';
+import axios from 'axios';
 
 function Navbar() {
   const [userInfo, setUserInfo] = useState(null);
@@ -45,23 +50,16 @@ function Navbar() {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const navigate = useNavigate();
   const location = useLocation();
+  const { mode, toggleColorMode } = useThemeContext();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetch('http://localhost:5022/api/Account/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      })
-        .then(res => res.json())
-        .then(data => setUserInfo(data))
-        .catch(() => {
-          authService.logout();
-          setUserInfo(null);
-        });
-    } else {
-      setUserInfo(null);
-    }
-  }, []);
+    const checkAuth = async () => {
+      const user = await authService.getCurrentUser();
+      setUserInfo(user);
+    };
+
+    checkAuth();
+  }, [location.pathname]);
 
   const handleMenu = (event) => {
     setAnchorEl(event.currentTarget);
@@ -125,6 +123,14 @@ function Navbar() {
             />
           </ListItem>
         ))}
+      </List>
+      <Divider />
+      <List>
+        <ListItem>
+          <ListItemIcon>{mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}</ListItemIcon>
+          <ListItemText primary="Dark Mode" />
+          <Switch edge="end" onChange={toggleColorMode} checked={mode === 'dark'} />
+        </ListItem>
       </List>
       <Divider />
       {userInfo ? (
@@ -233,6 +239,12 @@ function Navbar() {
                   </Button>
                 </Tooltip>
               ))}
+
+              <Tooltip title="Toggle Dark Mode">
+                <IconButton color="inherit" onClick={toggleColorMode}>
+                  {mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
+                </IconButton>
+              </Tooltip>
 
               {userInfo ? (
                 <>

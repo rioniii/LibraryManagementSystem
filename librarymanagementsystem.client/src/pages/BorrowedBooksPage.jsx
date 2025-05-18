@@ -20,48 +20,67 @@ const BorrowedBooksPage = () => {
   const [borrowedBooks, setBorrowedBooks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const currentUser = authService.getCurrentUser();
-  const hasFetched = React.useRef(false);
 
   useEffect(() => {
-    // Access the user ID using the correct full claim type URI key
-    const userId = currentUser?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+    let isMounted = true; // Flag to track if component is mounted
 
-    // Only attempt to fetch if currentUser and userId are available and we haven't fetched yet
-    if (currentUser && userId && !hasFetched.current) {
-      fetchBorrowedBooks(userId);
-      hasFetched.current = true; // Mark as fetched
-    } else if (!currentUser) {
-      setError('User not logged in.');
-      setLoading(false);
-      hasFetched.current = false; // Reset if user logs out
-    } else if (!userId) {
-        setError('User ID not available. Please log in again.');
-        setLoading(false);
-        hasFetched.current = false; // Reset if user ID is missing
-    }
-  }, [currentUser]); // Depend on currentUser to refetch if user state changes
+    const initializeFetch = async () => {
+      setLoading(true);
+      setError(null);
 
-  const fetchBorrowedBooks = (userId) => {
-    setLoading(true);
-    setError(null); // Clear previous errors on new fetch attempt
-    // TODO: Implement backend endpoint to get loans for a specific user
-    axios.get(`http://localhost:5022/api/BookLoan/user/${userId}`)
-      .then(response => {
-        setBorrowedBooks(response.data);
-        setLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching borrowed books:', error);
-        if (error.response && error.response.status === 404) {
-          setBorrowedBooks([]); // Set to empty array if 404 (no books found)
-          setError(null); // Clear any previous error
+      const currentUser = authService.getCurrentUser();
+      const isAuthenticated = authService.isAuthenticated();
+
+      if (isAuthenticated && currentUser) {
+        // Access the user ID using the correct full claim type URI key or the Id property
+        const userId = currentUser.id || currentUser['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'];
+
+        if (userId) {
+          try {
+            const response = await axios.get(`http://localhost:5022/api/BookLoan/user/${userId}`);
+            if (isMounted) {
+              setBorrowedBooks(response.data);
+              setLoading(false);
+            }
+          } catch (error) {
+            console.error('Error fetching borrowed books:', error);
+            if (isMounted) {
+              if (error.response && error.response.status === 404) {
+                setBorrowedBooks([]);
+                setError(null);
+              } else if (error.response && error.response.status === 401) {
+                 setError('Unauthorized: Please log in again.');
+                 authService.logout(); // Log out user on 401
+              } else if (error.response && error.response.status === 403) {
+                 setError('Forbidden: You do not have access to this resource.');
+              }
+               else {
+                setError('Failed to load borrowed books.');
+              }
+              setLoading(false);
+            }
+          }
         } else {
-          setError('Failed to load borrowed books.');
+          if (isMounted) {
+            setError('User ID not available. Please log in again.');
+            setLoading(false);
+          }
         }
-        setLoading(false);
-      });
-  };
+      } else {
+        if (isMounted) {
+          setError('User not logged in.');
+          setLoading(false);
+        }
+      }
+    };
+
+    initializeFetch();
+
+    // Cleanup function to prevent state updates on unmounted component
+    return () => {
+      isMounted = false;
+    };
+  }, []); // Empty dependency array means this effect runs once on mount
 
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { CssBaseline, ThemeProvider, Box } from '@mui/material';
+import { CssBaseline, Box } from '@mui/material';
 import MainLayout from './components/layout/MainLayout';
 import DashboardLayout from './components/layout/DashboardLayout';
 import ProtectedRoute from './components/auth/ProtectedRoute';
@@ -10,7 +10,6 @@ import ContactUs from './pages/ContactUs';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import Dashboard from './pages/Dashboard';
-import theme from './theme/theme';
 import Navbar from './components/Navbar';
 import Profile from './pages/Profile';
 import ManageUsersPage from './pages/ManageUsersPage';
@@ -19,10 +18,12 @@ import ManageBookLoansPage from './pages/ManageBookLoansPage';
 import ManageCategoriesPage from './pages/ManageCategoriesPage';
 import BorrowedBooksPage from './pages/BorrowedBooksPage';
 import BooksPage from './pages/BooksPage';
+import DashboardSettingsPage from './pages/DashboardSettingsPage';
+import { ThemeContextProvider } from './ThemeContext';
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeContextProvider>
       <CssBaseline />
       <Navbar />
       <Box sx={{ pt: 8 }}> {/* Add padding top to account for fixed navbar */}
@@ -71,11 +72,11 @@ function App() {
             <Route path="books" element={<ManageBooksPage />} />
             <Route path="loans" element={<ManageBookLoansPage />} />
             <Route path="categories" element={<ManageCategoriesPage />} />
-            <Route path="settings" element={<div>Settings</div>} />
+            <Route path="settings" element={<DashboardSettingsPage />} />
           </Route>
         </Routes>
       </Box>
-    </ThemeProvider>
+    </ThemeContextProvider>
   );
 }
 

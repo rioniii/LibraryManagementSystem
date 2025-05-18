@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Security.Claims;
 
 namespace LibraryManagementSystem.Server.Controllers
 {
@@ -108,7 +109,7 @@ namespace LibraryManagementSystem.Server.Controllers
                     bl.BookId,
                     BookTitle = bl.Book != null ? bl.Book.Title : "",
                     bl.UserId,
-                    UserName = bl.User != null ? bl.User.UserName ?? "" : "", // Include UserName if needed
+                    UserName = bl.User != null ? bl.User.UserName ?? "" : "",
                     bl.LoanDate,
                     bl.DueDate,
                     bl.ReturnDate,
