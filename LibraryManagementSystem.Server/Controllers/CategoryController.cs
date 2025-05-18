@@ -12,7 +12,6 @@ namespace LibraryManagementSystem.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize]
     public class CategoryController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
@@ -47,7 +46,6 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // POST: api/category
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<Category>> PostCategory(CategoryCreateDto categoryDto)
         {
             if (!ModelState.IsValid)
@@ -69,7 +67,6 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // PUT: api/category/5
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> PutCategory(int id, Category category)
         {
             if (id != category.CategoryId)
@@ -100,7 +97,6 @@ namespace LibraryManagementSystem.Server.Controllers
 
         // DELETE: api/category/5
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             var category = await _context.Categories.FindAsync(id);

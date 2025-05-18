@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 
 namespace LibraryManagementSystem.Server.Controllers
 {
-    [Authorize(Roles = "Admin")]
     [ApiController]
     [Route("api/[controller]")]
     public class RoleController : ControllerBase
