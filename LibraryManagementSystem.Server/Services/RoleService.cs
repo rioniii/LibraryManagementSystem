@@ -17,15 +17,19 @@ namespace LibraryManagementSystem.Server.Services
         public async Task<bool> AssignRoleToUser(string userId, string roleName)
         {
             var user = await _userManager.FindByIdAsync(userId);
-            if (user == null)
-                return false;
+            if (user == null) return false;
 
-            var role = await _roleManager.FindByNameAsync(roleName);
-            if (role == null)
-                return false;
+            // Remove all current roles
+            var currentRoles = await _userManager.GetRolesAsync(user);
+            if (currentRoles.Any())
+            {
+                var removeResult = await _userManager.RemoveFromRolesAsync(user, currentRoles);
+                if (!removeResult.Succeeded) return false;
+            }
 
-            var result = await _userManager.AddToRoleAsync(user, roleName);
-            return result.Succeeded;
+            // Add the new role
+            var addResult = await _userManager.AddToRoleAsync(user, roleName);
+            return addResult.Succeeded;
         }
 
         public async Task<bool> RemoveRoleFromUser(string userId, string roleName)

@@ -17,9 +17,11 @@ import {
   Dialog,
   DialogActions,
   DialogContent,
-  DialogTitle
+  DialogTitle,
+  IconButton
 } from '@mui/material';
 import axios from 'axios';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 const ManageCategoriesPage = () => {
   const [categories, setCategories] = useState([]);
@@ -79,6 +81,19 @@ const ManageCategoriesPage = () => {
       });
   };
 
+  const handleDeleteCategory = (categoryId) => {
+    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    axios.delete(`http://localhost:5022/api/Category/${categoryId}`)
+      .then(response => {
+        // Optionally show a success message
+        fetchCategories(); // Refresh the list
+      })
+      .catch(error => {
+        console.error('Error deleting category:', error);
+        // Optionally show an error message
+      });
+  };
+
   return (
     <Container maxWidth="lg" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom sx={{ mb: 4 }}>
@@ -101,6 +116,7 @@ const ManageCategoriesPage = () => {
                 <TableCell sx={{ fontWeight: 'bold' }}>ID</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Name</TableCell>
                 <TableCell sx={{ fontWeight: 'bold' }}>Description</TableCell>
+                <TableCell sx={{ fontWeight: 'bold' }}>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -109,6 +125,16 @@ const ManageCategoriesPage = () => {
                   <TableCell>{category.categoryId}</TableCell>
                   <TableCell>{category.name}</TableCell>
                   <TableCell>{category.description}</TableCell>
+                  <TableCell>
+                    <IconButton
+                      color="error"
+                      onClick={() => handleDeleteCategory(category.categoryId)}
+                      aria-label="delete"
+                      size="small"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
